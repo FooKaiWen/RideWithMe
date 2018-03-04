@@ -4,18 +4,28 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="kw.com.ridewithme.MainActivity"
+    tools:context="kw.com.ridewithme.RiderLoginActivity"
     android:orientation="vertical">
 
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Email Address"
+        android:id="@+id/emailL"/>
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Password"
+        android:id="@+id/passwordL"/>
     <Button
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="I'M A RIDER"
-        android:id="@+id/rider"/>
+        android:text="Login"
+        android:id="@+id/login"/>
     <Button
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="I'M A CUSTOMER"
-        android:id="@+id/customer"/>
+        android:text="Sign Up"
+        android:id="@+id/signupL"/>
 
 </LinearLayout>
