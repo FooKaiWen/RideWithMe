@@ -29,7 +29,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
-public class RiderMapsActivity extends FragmentActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks,
+public class CustomerMapsActivity extends FragmentActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener, com.google.android.gms.location.LocationListener {
 
     private GoogleMap mMap;
@@ -42,18 +42,18 @@ public class RiderMapsActivity extends FragmentActivity implements OnMapReadyCal
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_rider_maps);
+        setContentView(R.layout.activity_customer_maps);
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
-        mLogout = (Button) findViewById(R.id.logoutRider);
+        mLogout = (Button) findViewById(R.id.logoutCustomer);
         mLogout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 FirebaseAuth.getInstance().signOut();
-                Intent intent = new Intent(RiderMapsActivity.this, MainActivity.class);
+                Intent intent = new Intent(CustomerMapsActivity.this, MainActivity.class);
                 startActivity(intent);
                 finish();
             }
@@ -148,3 +148,4 @@ public class RiderMapsActivity extends FragmentActivity implements OnMapReadyCal
         });
     }
 }
+
