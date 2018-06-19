@@ -8,13 +8,21 @@
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/logoutCustomer"/>
+        android:id="@+id/logoutCustomer"
+        android:text="Log Out"
+        android:layout_marginTop="50dp"/>
+    
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text=" request a ride"
+        android:id="@+id/request"
+        android:layout_gravity="bottom"/>
 
     <fragment
         android:id="@+id/map"
         android:name="com.google.android.gms.maps.SupportMapFragment"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        />
+        android:layout_height="match_parent" />
 
 </FrameLayout>

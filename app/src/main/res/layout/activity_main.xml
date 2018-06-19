@@ -13,9 +13,15 @@
         android:text="I'M A RIDER"
         android:id="@+id/rider"/>
     <Button
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:text="I'M A CUSTOMER"
+    android:id="@+id/customer"/>
+
+    <Button
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="I'M A CUSTOMER"
-        android:id="@+id/customer"/>
+        android:text="I'M ADMIN"
+        android:id="@+id/admin"/>
 
 </LinearLayout>

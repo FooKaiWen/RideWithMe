@@ -4,11 +4,14 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
+import android.os.Build;
+import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
+import android.support.v4.content.ContextCompat;
 import android.view.View;
 import android.widget.Button;
 
@@ -23,6 +26,7 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseError;
@@ -37,7 +41,7 @@ public class RiderMapsActivity extends FragmentActivity implements OnMapReadyCal
     Location mLastLocation;
     LocationRequest mLocationRequest;
 
-    private Button mLogout;
+    private Button mLogout, ridedone;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,18 +62,23 @@ public class RiderMapsActivity extends FragmentActivity implements OnMapReadyCal
                 finish();
             }
         });
+
     }
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
 
-            return;
+        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+
+                buildGoogleApiClient();
+                mMap.setMyLocationEnabled(true);
+            }
+        } else {
+            buildGoogleApiClient();
+            mMap.setMyLocationEnabled(true);
         }
-        buildGoogleApiClient();
-        mMap.setMyLocationEnabled(true);
-
     }
 
     protected synchronized void buildGoogleApiClient(){
@@ -87,7 +96,7 @@ public class RiderMapsActivity extends FragmentActivity implements OnMapReadyCal
 
         LatLng latlng = new LatLng(location.getLatitude(),location.getLongitude());
         mMap.moveCamera(CameraUpdateFactory.newLatLng(latlng));
-        mMap.animateCamera(CameraUpdateFactory.zoomTo(11));
+        mMap.animateCamera(CameraUpdateFactory.zoomTo(9));
 
         String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         DatabaseReference reference = FirebaseDatabase.getInstance().getReference("riderAvailable");
@@ -107,6 +116,8 @@ public class RiderMapsActivity extends FragmentActivity implements OnMapReadyCal
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
+
+
         mLocationRequest = new LocationRequest();
         mLocationRequest.setInterval(1000);
         mLocationRequest.setFastestInterval(1000);
@@ -131,20 +142,23 @@ public class RiderMapsActivity extends FragmentActivity implements OnMapReadyCal
     @Override
     protected void onStop(){
         super.onStop();
-        LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
-        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        DatabaseReference reference = FirebaseDatabase.getInstance().getReference("riderAvailable");
+    }
 
-        GeoFire geoFire = new GeoFire(reference);
-        geoFire.removeLocation(userId, new GeoFire.CompletionListener() {
-            @Override
-            public void onComplete(String key, DatabaseError error) {
-                if (error != null) {
-                    System.err.println("There was an error deleting the location from GeoFire: " + error);
-                } else {
-                    System.out.println("Location deleted on server successfully!");
-                }
-            }
-        });
+    private void connectDriver(){
+//        checkLocationPermission();
+//        mFusedLocationClient.requestLocationUpdates(mLocationRequest,mLocationCallback, Looper.myLooper());
+//        mMap.setMyLocationEnabled(true);
+    }
+
+    private void disconnectDriver(){
+//        if(mFusedLocationClient != null){
+//            mFusedLocationClient.removeLocationUpdates(mLocationCallback);
+//        }
+
+        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("driversAvailable");
+
+//        Geofire geoFire = new GeoFire(ref);
+//        geoFire.removeLocation(userId);
     }
 }

@@ -8,7 +8,15 @@
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/logoutRider"/>
+        android:id="@+id/logoutRider"
+        android:text="Log Out"/>
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Ride Done!"
+        android:id="@+id/ridedone"
+        android:layout_gravity="bottom"/>
 
     <fragment
         android:id="@+id/map"

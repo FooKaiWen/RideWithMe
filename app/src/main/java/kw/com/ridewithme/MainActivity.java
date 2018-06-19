@@ -7,7 +7,7 @@ import android.view.View;
 import android.widget.Button;
 
 public class MainActivity extends AppCompatActivity {
-    private Button mRider, mCustomer;
+    private Button mRider, mCustomer, mAdmin;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -15,6 +15,7 @@ public class MainActivity extends AppCompatActivity {
 
         mRider = (Button) findViewById(R.id.rider);
         mCustomer = (Button) findViewById(R.id.customer);
+        mAdmin = (Button) findViewById(R.id.admin);
 
         mRider.setOnClickListener(new View.OnClickListener() {
             @Override

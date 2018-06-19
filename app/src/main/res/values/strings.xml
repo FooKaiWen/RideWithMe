@@ -2,4 +2,15 @@
     <string name="app_name">RideWithMe</string>
     <string name="title_activity_maps">Map</string>
     <string name="title_activity_rider_maps">Map</string>
+    <string-array name="name">
+        <item>Driver List</item>
+        <item>Jonathan</item>
+        <item>Ali</item>
+        <item>Foo</item>
+    </string-array>
+    <string-array name="editedname">
+        <item>Driver List</item>
+        <item>Ali</item>
+        <item>Foo</item>
+    </string-array>
 </resources>
