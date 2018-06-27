@@ -22,6 +22,7 @@ public class CustomerLoginActivity extends AppCompatActivity {
     private Button mLogin, mSignup;
     private FirebaseAuth mAuth;
     private FirebaseAuth.AuthStateListener firebaseAuthListener;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -33,35 +34,36 @@ public class CustomerLoginActivity extends AppCompatActivity {
             @Override
             public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
                 FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-                if(user!=null){
+                if (user != null) {
                     Intent intent = new Intent(CustomerLoginActivity.this, CustomerMapsActivity.class);
                     startActivity(intent);
                     finish();
-                    return;
                 }
             }
         };
 
-        mEmailAddress = (EditText) findViewById(R.id.emailL);
-        mPassword = (EditText) findViewById(R.id.passwordL);
+        mEmailAddress = (EditText) findViewById(R.id.emailCus);
+        mPassword = (EditText) findViewById(R.id.passwordCus);
 
-        mLogin = (Button) findViewById(R.id.login);
-        mSignup = (Button) findViewById(R.id.signupL);
+        mLogin = (Button) findViewById(R.id.loginCus);
+        mSignup = (Button) findViewById(R.id.signupCus);
 
         mSignup.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 final String email = mEmailAddress.getText().toString();
                 final String password = mPassword.getText().toString();
-                mAuth.createUserWithEmailAndPassword(email,password).addOnCompleteListener(CustomerLoginActivity.this, new OnCompleteListener<AuthResult>() {
+                mAuth.createUserWithEmailAndPassword(email, password).addOnCompleteListener(CustomerLoginActivity.this, new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
-                        if(!task.isSuccessful()){
-                            Toast.makeText(CustomerLoginActivity.this,"sign up error",Toast.LENGTH_SHORT).show();
+                        if (!task.isSuccessful()) {
+                            Toast.makeText(CustomerLoginActivity.this, "Authentication failed", Toast.LENGTH_SHORT).show();
                         } else {
+//                            if (!mAuth.getCurrentUser().getUid().isEmpty()) {
                             String user_id = mAuth.getCurrentUser().getUid();
                             DatabaseReference current_user_id = FirebaseDatabase.getInstance().getReference().child("Users").child("Customers").child(user_id);
                             current_user_id.setValue(true);
+//                            }
                         }
                     }
                 });
@@ -73,11 +75,14 @@ public class CustomerLoginActivity extends AppCompatActivity {
             public void onClick(View view) {
                 final String email = mEmailAddress.getText().toString();
                 final String password = mPassword.getText().toString();
-                mAuth.signInWithEmailAndPassword(email,password).addOnCompleteListener(CustomerLoginActivity.this, new OnCompleteListener<AuthResult>() {
+                mAuth.signInWithEmailAndPassword(email, password).addOnCompleteListener(CustomerLoginActivity.this, new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
-                        if(!task.isSuccessful()){
-                            Toast.makeText(CustomerLoginActivity.this,"sign in error",Toast.LENGTH_SHORT).show();
+                        if (task.isSuccessful()) {
+                            FirebaseUser user = mAuth.getCurrentUser();
+//                            updateUI(user);
+                        } else {
+                            Toast.makeText(CustomerLoginActivity.this, "sign in error", Toast.LENGTH_SHORT).show();
                         }
                     }
                 });
@@ -87,14 +92,21 @@ public class CustomerLoginActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onStart(){
+    protected void onStart() {
         super.onStart();
         mAuth.addAuthStateListener(firebaseAuthListener);
     }
 
     @Override
-    protected void onStop(){
+    protected void onStop() {
         super.onStop();
         mAuth.removeAuthStateListener(firebaseAuthListener);
+    }
+
+    @Override
+    public void onBackPressed() {
+        Intent intent = new Intent(CustomerLoginActivity.this, MainActivity.class);
+        startActivity(intent);
+        finish();
     }
 }

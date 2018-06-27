@@ -1,5 +1,7 @@
 package kw.com.ridewithme;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
@@ -22,6 +24,7 @@ public class RiderLoginActivity extends AppCompatActivity {
     private Button mLogin, mSignup;
     private FirebaseAuth mAuth;
     private FirebaseAuth.AuthStateListener firebaseAuthListener;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -33,7 +36,7 @@ public class RiderLoginActivity extends AppCompatActivity {
             @Override
             public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
                 FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-                if(user!=null){
+                if (user != null) {
                     Intent intent = new Intent(RiderLoginActivity.this, RiderMapsActivity.class);
                     startActivity(intent);
                     finish();
@@ -42,22 +45,22 @@ public class RiderLoginActivity extends AppCompatActivity {
             }
         };
 
-        mEmailAddress = (EditText) findViewById(R.id.emailL);
-        mPassword = (EditText) findViewById(R.id.passwordL);
+        mEmailAddress = (EditText) findViewById(R.id.emailRider);
+        mPassword = (EditText) findViewById(R.id.passwordRider);
 
-        mLogin = (Button) findViewById(R.id.login);
-        mSignup = (Button) findViewById(R.id.signupL);
+        mLogin = (Button) findViewById(R.id.loginRider);
+        mSignup = (Button) findViewById(R.id.signupRider);
 
         mSignup.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 final String email = mEmailAddress.getText().toString();
                 final String password = mPassword.getText().toString();
-                mAuth.createUserWithEmailAndPassword(email,password).addOnCompleteListener(RiderLoginActivity.this, new OnCompleteListener<AuthResult>() {
+                mAuth.createUserWithEmailAndPassword(email, password).addOnCompleteListener(RiderLoginActivity.this, new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
-                        if(!task.isSuccessful()){
-                            Toast.makeText(RiderLoginActivity.this,"sign up error",Toast.LENGTH_SHORT).show();
+                        if (!task.isSuccessful()) {
+                            Toast.makeText(RiderLoginActivity.this, "sign up error", Toast.LENGTH_SHORT).show();
                         } else {
                             String user_id = mAuth.getCurrentUser().getUid();
                             DatabaseReference current_user_id = FirebaseDatabase.getInstance().getReference().child("Users").child("Riders").child(user_id);
@@ -73,11 +76,11 @@ public class RiderLoginActivity extends AppCompatActivity {
             public void onClick(View view) {
                 final String email = mEmailAddress.getText().toString();
                 final String password = mPassword.getText().toString();
-                mAuth.signInWithEmailAndPassword(email,password).addOnCompleteListener(RiderLoginActivity.this, new OnCompleteListener<AuthResult>() {
+                mAuth.signInWithEmailAndPassword(email, password).addOnCompleteListener(RiderLoginActivity.this, new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
-                        if(!task.isSuccessful()){
-                            Toast.makeText(RiderLoginActivity.this,"sign in error",Toast.LENGTH_SHORT).show();
+                        if (!task.isSuccessful()) {
+                            Toast.makeText(RiderLoginActivity.this, "sign in error", Toast.LENGTH_SHORT).show();
                         }
                     }
                 });
@@ -87,14 +90,21 @@ public class RiderLoginActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onStart(){
+    protected void onStart() {
         super.onStart();
         mAuth.addAuthStateListener(firebaseAuthListener);
     }
 
     @Override
-    protected void onStop(){
+    protected void onStop() {
         super.onStop();
         mAuth.removeAuthStateListener(firebaseAuthListener);
+    }
+
+    @Override
+    public void onBackPressed() {
+        Intent intent = new Intent(RiderLoginActivity.this, MainActivity.class);
+        startActivity(intent);
+        finish();
     }
 }
