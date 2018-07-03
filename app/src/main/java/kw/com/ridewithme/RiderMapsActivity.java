@@ -5,27 +5,34 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
-import android.graphics.BitmapFactory;
-import android.graphics.drawable.BitmapDrawable;
+import android.graphics.Color;
 import android.location.Location;
-import android.location.LocationListener;
 import android.os.Build;
 import android.os.Looper;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.view.GravityCompat;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
 import com.firebase.geofire.GeoFire;
 import com.firebase.geofire.GeoLocation;
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResolvableApiException;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
@@ -42,7 +49,6 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.UiSettings;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -58,7 +64,8 @@ import com.google.firebase.database.ValueEventListener;
 import java.util.List;
 import java.util.Map;
 
-public class RiderMapsActivity extends FragmentActivity implements OnMapReadyCallback {
+public class RiderMapsActivity extends AppCompatActivity implements OnMapReadyCallback,
+        NavigationView.OnNavigationItemSelectedListener {
 
     private GoogleMap mMap;
     Location mLastLocation;
@@ -75,10 +82,14 @@ public class RiderMapsActivity extends FragmentActivity implements OnMapReadyCal
 
     private String customerID = "";
 
+    private LinearLayout mCustomerInfo;
+    private ImageView mCustomerProfileImage;
+    private TextView mCustomerName, mCustomerPhoneNo, mCustomerDestination;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_rider_maps);
+        setContentView(R.layout.activity_rider_navigation_drawer);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             checkLocationPermission();
@@ -90,6 +101,21 @@ public class RiderMapsActivity extends FragmentActivity implements OnMapReadyCal
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+
+        findViewById(R.id.appbar).bringToFront();
+
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        toolbar.setBackgroundColor(Color.TRANSPARENT);
+        setSupportActionBar(toolbar);
+
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        drawer.addDrawerListener(toggle);
+        toggle.syncState();
+
+        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView.setNavigationItemSelectedListener(this);
 
         mLogout = (Button) findViewById(R.id.logoutRider);
         mLogout.setOnClickListener(new View.OnClickListener() {
@@ -104,18 +130,26 @@ public class RiderMapsActivity extends FragmentActivity implements OnMapReadyCal
             }
         });
 
+        mCustomerInfo = (LinearLayout) findViewById(R.id.customerInfo);
+        mCustomerProfileImage = (ImageView) findViewById(R.id.customerProfileImage);
+        mCustomerName = (TextView) findViewById(R.id.customerName);
+        mCustomerPhoneNo = (TextView) findViewById(R.id.customerPhoneNo);
+        mCustomerDestination = (TextView) findViewById(R.id.customerDestination);
 //        getAssignedCustomer();
     }
 
     private void getAssignedCustomer() {
         String riderID = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        DatabaseReference customerRef = FirebaseDatabase.getInstance().getReference().child("Users").child("Riders").child(riderID).child("customerRideID");
+        DatabaseReference customerRef = FirebaseDatabase.getInstance().getReference().child("Users").child("Riders")
+                .child(riderID).child("customerRequest").child("customerRideID");
         customerRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 if (dataSnapshot.exists()) {
                     customerID = dataSnapshot.getValue().toString();
                     customerPickupLocation();
+                    customerDestination();
+                    customerInfo();
                 } else {
                     customerID = "";
                     if (pickupMarker != null) {
@@ -124,6 +158,63 @@ public class RiderMapsActivity extends FragmentActivity implements OnMapReadyCal
 
                     if (customerPickupLocationRefListener != null) {
                         customerPickupLocationRef.removeEventListener(customerPickupLocationRefListener);
+                    }
+
+                    mCustomerInfo.setVisibility(View.GONE);
+                    mCustomerPhoneNo.setText("");
+                    mCustomerName.setText("");
+                    mCustomerProfileImage.setImageResource(R.mipmap.ic_default_user);
+                    mCustomerDestination.setText("Destination: --");
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+    }
+
+    private void customerDestination() {
+        String riderID = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        DatabaseReference customerDestinationRef = FirebaseDatabase.getInstance().getReference().child("Users").child("Riders")
+                .child(riderID).child("customerRequest").child("destination");
+        customerDestinationRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    String destination = dataSnapshot.getValue().toString();
+                    mCustomerDestination.setText("Destination: " + destination);
+                } else {
+                    mCustomerDestination.setText("Destination: --");
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+    }
+
+    private void customerInfo() {
+        Toast.makeText(this, "customerInfo();", Toast.LENGTH_LONG).show();
+        mCustomerInfo.setVisibility(View.VISIBLE);
+        mCustomerInfo.bringToFront();
+        DatabaseReference mCustomerDatabase = FirebaseDatabase.getInstance().getReference().child("Users").child("Customers").child(customerID);
+        mCustomerDatabase.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                if (dataSnapshot.exists() && dataSnapshot.getChildrenCount() > 0) {
+                    Map<String, Object> map = (Map<String, Object>) dataSnapshot.getValue();
+                    if (map.get("name") != null) {
+                        mCustomerName.setText(map.get("name").toString());
+                    }
+                    if (map.get("phoneNo") != null) {
+                        mCustomerPhoneNo.setText(map.get("phoneNo").toString());
+                    }
+                    if (map.get("profileImageUrl") != null) {
+                        Glide.with(getApplication()).load(map.get("profileImageUrl").toString()).into(mCustomerProfileImage);
                     }
                 }
             }
@@ -248,7 +339,7 @@ public class RiderMapsActivity extends FragmentActivity implements OnMapReadyCal
 
                 //Place current location marker
                 LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
-                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 16));
+                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 16));
 
                 String userID = FirebaseAuth.getInstance().getCurrentUser().getUid();
                 DatabaseReference riderAvailRef = FirebaseDatabase.getInstance().getReference("ridersAvailable");
@@ -329,21 +420,26 @@ public class RiderMapsActivity extends FragmentActivity implements OnMapReadyCal
 
     @Override
     public void onBackPressed() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setMessage("Are you sure you want to exit?")
-                .setCancelable(false)
-                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
-                        RiderMapsActivity.this.finish();
-                    }
-                })
-                .setNegativeButton("No", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
-                        dialog.cancel();
-                    }
-                });
-        AlertDialog alert = builder.create();
-        alert.show();
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        if (drawer.isDrawerOpen(GravityCompat.START)) {
+            drawer.closeDrawer(GravityCompat.START);
+        } else {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setMessage("Are you sure you want to exit?")
+                    .setCancelable(false)
+                    .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            RiderMapsActivity.this.finish();
+                        }
+                    })
+                    .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            dialog.cancel();
+                        }
+                    });
+            AlertDialog alert = builder.create();
+            alert.show();
+        }
     }
 
     @Override
@@ -390,5 +486,54 @@ public class RiderMapsActivity extends FragmentActivity implements OnMapReadyCal
 //                }
 //            }
 //        });
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.navigation_drawer, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
+
+        //noinspection SimplifiableIfStatement
+        if (id == R.id.action_settings) {
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    @SuppressWarnings("StatementWithEmptyBody")
+    @Override
+    public boolean onNavigationItemSelected(MenuItem item) {
+        // Handle navigation view item clicks here.
+        int id = item.getItemId();
+
+        if (id == R.id.nav_camera) {
+            Intent intent = new Intent(RiderMapsActivity.this, RiderProfileActivity.class);
+            startActivity(intent);
+            finish();
+        } else if (id == R.id.nav_gallery) {
+
+        } else if (id == R.id.nav_slideshow) {
+
+        } else if (id == R.id.nav_manage) {
+
+        } else if (id == R.id.nav_share) {
+
+        } else if (id == R.id.nav_send) {
+
+        }
+
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        drawer.closeDrawer(GravityCompat.START);
+        return true;
     }
 }

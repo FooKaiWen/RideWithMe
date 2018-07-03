@@ -9,6 +9,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/logoutRider"
+        android:layout_marginTop="50dp"
         android:text="Log Out"/>
 
     <Button
@@ -17,6 +18,48 @@
         android:text="Ride Done!"
         android:id="@+id/ridedone"
         android:layout_gravity="bottom"/>
+    
+    <LinearLayout
+        android:id="@+id/customerInfo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:orientation="horizontal"
+        android:background="@android:color/white"
+        android:visibility="gone"
+        >
+        <ImageView
+            android:id="@+id/customerProfileImage"
+            android:layout_width="100sp"
+            android:layout_height="100sp"
+            android:src="@mipmap/ic_default_user"
+            android:padding="20sp"/>
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingLeft="40sp">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/customerDestination"
+                android:paddingBottom="10sp"
+                android:paddingTop="20sp"
+                android:text="Destination: --"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/customerName"
+                android:paddingBottom="10sp"
+                android:paddingTop="20sp"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/customerPhoneNo"
+                android:paddingBottom="10sp"
+                android:paddingTop="20sp"/>
+        </LinearLayout>
+    </LinearLayout>
 
     <fragment
         android:id="@+id/map"

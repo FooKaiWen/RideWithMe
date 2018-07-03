@@ -1,23 +1,17 @@
 package kw.com.ridewithme;
 
-import android.*;
 import android.app.AlertDialog;
-import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
-import android.graphics.Camera;
 import android.graphics.Color;
 import android.location.Location;
-import android.location.LocationListener;
 import android.os.Build;
 import android.os.Looper;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.GravityCompat;
@@ -30,17 +24,17 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
 import com.firebase.geofire.GeoFire;
 import com.firebase.geofire.GeoLocation;
 import com.firebase.geofire.GeoQuery;
 import com.firebase.geofire.GeoQueryEventListener;
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.PendingResult;
 import com.google.android.gms.common.api.ResolvableApiException;
-import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
@@ -49,10 +43,10 @@ import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.LocationSettingsRequest;
 import com.google.android.gms.location.LocationSettingsResponse;
-import com.google.android.gms.location.LocationSettingsResult;
-import com.google.android.gms.location.LocationSettingsStatusCodes;
 import com.google.android.gms.location.SettingsClient;
-import com.google.android.gms.maps.CameraUpdate;
+import com.google.android.gms.location.places.Place;
+import com.google.android.gms.location.places.ui.PlaceAutocompleteFragment;
+import com.google.android.gms.location.places.ui.PlaceSelectionListener;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -60,7 +54,6 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.UiSettings;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -75,7 +68,7 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
+import java.util.Map;
 
 public class CustomerMapsActivity extends AppCompatActivity implements OnMapReadyCallback,
         NavigationView.OnNavigationItemSelectedListener {
@@ -94,11 +87,17 @@ public class CustomerMapsActivity extends AppCompatActivity implements OnMapRead
     private boolean requestStatus = false;
     private Marker pickupMarker;
 
+    private String destination;
+
+    private LinearLayout mRiderInfo;
+    private ImageView mRiderProfileImage;
+    private TextView mRiderName, mRiderPhoneNo;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_navigation_drawer);
+        setContentView(R.layout.activity_customer_navigation_drawer);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             checkLocationPermission();
@@ -126,6 +125,11 @@ public class CustomerMapsActivity extends AppCompatActivity implements OnMapRead
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
+        mRiderInfo = (LinearLayout) findViewById(R.id.riderInfo);
+        mRiderProfileImage = (ImageView) findViewById(R.id.riderProfileImage);
+        mRiderName = (TextView) findViewById(R.id.riderName);
+        mRiderPhoneNo = (TextView) findViewById(R.id.riderPhoneNo);
+
         mLogout = (Button) findViewById(R.id.logoutCustomer);
         mLogout.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -144,11 +148,14 @@ public class CustomerMapsActivity extends AppCompatActivity implements OnMapRead
 
                     requestStatus = false;
                     geoQuery.removeAllListeners();
-                    riderLocationRef.removeEventListener(riderLocationRefListener);
+
+                    if (riderLocationRefListener != null) {
+                        riderLocationRef.removeEventListener(riderLocationRefListener);
+                    }
 
                     if (riderFoundID != null) {
-                        DatabaseReference riderRef = FirebaseDatabase.getInstance().getReference().child("Users").child("Riders").child(riderFoundID);
-                        riderRef.setValue(true);
+                        DatabaseReference riderRef = FirebaseDatabase.getInstance().getReference().child("Users").child("Riders").child(riderFoundID).child("customerRequest");
+                        riderRef.removeValue();
                         riderFoundID = null;
                     }
 
@@ -166,6 +173,11 @@ public class CustomerMapsActivity extends AppCompatActivity implements OnMapRead
                     if (mRiderMarker != null) {
                         mRiderMarker.remove();
                     }
+
+                    mRiderInfo.setVisibility(View.GONE);
+                    mRiderPhoneNo.setText("");
+                    mRiderName.setText("");
+                    mRiderProfileImage.setImageResource(R.mipmap.ic_default_user);
 
                     mRequest.setText("Request a ride");
                 } else {
@@ -194,6 +206,22 @@ public class CustomerMapsActivity extends AppCompatActivity implements OnMapRead
 
             }
         });
+
+        PlaceAutocompleteFragment autocompleteFragment = (PlaceAutocompleteFragment)
+                getFragmentManager().findFragmentById(R.id.place_autocomplete_fragment);
+
+        autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
+            @Override
+            public void onPlaceSelected(Place place) {
+                // TODO: Get info about the selected place.
+                destination = place.getName().toString();
+            }
+
+            @Override
+            public void onError(Status status) {
+                // TODO: Handle the error.
+            }
+        });
     }
 
     private int radius = 1;
@@ -215,13 +243,15 @@ public class CustomerMapsActivity extends AppCompatActivity implements OnMapRead
                     riderFound = true;
                     riderFoundID = key;
                     Toast.makeText(CustomerMapsActivity.this, "bbb", Toast.LENGTH_SHORT).show();
-                    DatabaseReference riderRef = FirebaseDatabase.getInstance().getReference().child("Users").child("Riders").child(riderFoundID);
+                    DatabaseReference riderRef = FirebaseDatabase.getInstance().getReference().child("Users").child("Riders").child(riderFoundID).child("customerRequest");
                     String customerID = FirebaseAuth.getInstance().getCurrentUser().getUid();
                     HashMap hm = new HashMap();
                     hm.put("customerRideID", customerID);
+                    hm.put("destination", destination);
                     riderRef.updateChildren(hm);
 
                     getRiderLocation();
+                    riderInfo();
                     mRequest.setText("Looking for rider location");
                 }
             }
@@ -305,6 +335,34 @@ public class CustomerMapsActivity extends AppCompatActivity implements OnMapRead
         });
     }
 
+    private void riderInfo() {
+        Toast.makeText(this, "riderInfo();", Toast.LENGTH_LONG).show();
+        mRiderInfo.setVisibility(View.VISIBLE);
+//        mRiderInfo.bringToFront();
+        DatabaseReference mRiderDatabase = FirebaseDatabase.getInstance().getReference().child("Users").child("Riders").child(riderFoundID);
+        mRiderDatabase.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                if (dataSnapshot.exists() && dataSnapshot.getChildrenCount() > 0) {
+                    Map<String, Object> map = (Map<String, Object>) dataSnapshot.getValue();
+                    if (map.get("name") != null) {
+                        mRiderName.setText(map.get("name").toString());
+                    }
+                    if (map.get("phoneNo") != null) {
+                        mRiderPhoneNo.setText(map.get("phoneNo").toString());
+                    }
+                    if (map.get("profileImageUrl") != null) {
+                        Glide.with(getApplication()).load(map.get("profileImageUrl").toString()).into(mRiderProfileImage);
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+    }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -384,7 +442,7 @@ public class CustomerMapsActivity extends AppCompatActivity implements OnMapRead
             mUiSettings.setMyLocationButtonEnabled(true);
             mUiSettings.setTiltGesturesEnabled(true);
             mUiSettings.setRotateGesturesEnabled(true);
-            mMap.setPadding(0,120,0,0);
+            mMap.setPadding(0, 120, 0, 0);
         }
     }
 
@@ -401,7 +459,7 @@ public class CustomerMapsActivity extends AppCompatActivity implements OnMapRead
                 //Place current location marker
                 LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
 
-//                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 16));
+                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 16));
             }
         }
     };
@@ -495,7 +553,10 @@ public class CustomerMapsActivity extends AppCompatActivity implements OnMapRead
         int id = item.getItemId();
 
         if (id == R.id.nav_camera) {
+            Bundle dataBundle = new Bundle();
+            dataBundle.putInt("tag", 1);
             Intent intent = new Intent(CustomerMapsActivity.this, CustomerProfileActivity.class);
+            intent.putExtras(dataBundle);
             startActivity(intent);
             finish();
         } else if (id == R.id.nav_gallery) {

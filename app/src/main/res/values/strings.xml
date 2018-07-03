@@ -2,17 +2,7 @@
     <string name="app_name">RideWithMe</string>
     <string name="title_activity_maps">Map</string>
     <string name="title_activity_rider_maps">Map</string>
-    <string-array name="name">
-        <item>Driver List</item>
-        <item>Jonathan</item>
-        <item>Ali</item>
-        <item>Foo</item>
-    </string-array>
-    <string-array name="editedname">
-        <item>Driver List</item>
-        <item>Ali</item>
-        <item>Foo</item>
-    </string-array>
+
     <string name="title_activity_customer_drawer">CustomerDrawerActivity</string>
 
     <string name="navigation_drawer_open">Open navigation drawer</string>
@@ -20,4 +10,5 @@
 
     <string name="action_settings">Settings</string>
     <string name="title_activity_navigation_drawer">NavigationDrawerActivity</string>
+    <string name="title_activity_rider_profile">RiderProfileActivity</string>
 </resources>

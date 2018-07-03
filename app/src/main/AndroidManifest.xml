@@ -48,17 +48,21 @@
         -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="@string/google_maps_key" />
+            android:value="AIzaSyBwM_rv3r5i131D3KzMiZeEl42_u0LOrV0" />
 
         <activity
             android:name=".RiderMapsActivity"
             android:label="@string/title_activity_rider_maps" />
         <activity android:name=".CustomerMapsActivity" />
-        <!--<activity-->
-            <!--android:name=".NavigationDrawerActivity"-->
-            <!--android:label="@string/title_activity_navigation_drawer"-->
-            <!--android:theme="@style/AppTheme.NoActionBar" />-->
-        <activity android:name=".CustomerProfileActivity"></activity>
+        <!-- <activity -->
+        <!-- android:name=".NavigationDrawerActivity" -->
+        <!-- android:label="@string/title_activity_navigation_drawer" -->
+        <!-- android:theme="@style/AppTheme.NoActionBar" /> -->
+        <activity android:name=".CustomerProfileActivity" />
+        <activity
+            android:name=".RiderProfileActivity"
+            android:label="@string/title_activity_rider_profile"
+            android:theme="@style/AppTheme"></activity>
     </application>
 
 </manifest>
