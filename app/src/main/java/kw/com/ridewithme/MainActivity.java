@@ -12,7 +12,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
 public class MainActivity extends AppCompatActivity {
-    private Button mRider, mCustomer;
+    private Button mRider, mCustomer,Generator;
     private FirebaseAuth mAuth;
 
     @Override
@@ -24,6 +24,7 @@ public class MainActivity extends AppCompatActivity {
 
         mRider = (Button) findViewById(R.id.rider);
         mCustomer = (Button) findViewById(R.id.customer);
+        Generator = (Button)findViewById(R.id.Generator);
 
         mRider.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -44,6 +45,17 @@ public class MainActivity extends AppCompatActivity {
                 return;
             }
         });
+
+        Generator.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(MainActivity.this,QR_Generator.class);
+                startActivity(intent);
+                finish();
+                return;
+            }
+        });
+
     }
 
     @Override

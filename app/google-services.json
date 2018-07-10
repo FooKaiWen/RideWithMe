@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "720680187259",
+    "firebase_url": "https://ridewithme-9ed73.firebaseio.com",
+    "project_id": "ridewithme-9ed73",
+    "storage_bucket": "ridewithme-9ed73.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:720680187259:android:81b71e9d65259c9c",
+        "android_client_info": {
+          "package_name": "kw.com.ridewithme"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "720680187259-qhj42de4bkmkc293chf88cfudns6cd7k.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "kw.com.ridewithme",
+            "certificate_hash": "ca8cd0c51bb50ea8a232a26d0ebadebcdb28ee1a"
+          }
+        },
+        {
+          "client_id": "720680187259-e415ii0s0l1rgh7gecfctoujkg07u7rh.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDUMgkUfRbroQdEK4UFdRK6q1I8Wux2U7Q"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "720680187259-e415ii0s0l1rgh7gecfctoujkg07u7rh.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -38,6 +38,7 @@
         </activity>
         <activity android:name=".RiderLoginActivity" />
         <activity android:name=".CustomerLoginActivity" />
+        <activity android:name=".QR_Generator"/>
         <!--
              The API key for Google Maps-based APIs is defined as a string resource.
              (See the file "res/values/google_maps_api.xml").
@@ -62,7 +63,7 @@
         <activity
             android:name=".RiderProfileActivity"
             android:label="@string/title_activity_rider_profile"
-            android:theme="@style/AppTheme"></activity>
+            android:theme="@style/AppTheme" />
     </application>
 
 </manifest>
